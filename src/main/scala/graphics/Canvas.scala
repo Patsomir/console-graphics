@@ -42,6 +42,10 @@ class Canvas private (width: Int, height: Int) {
     val Triangle(a, b, c, color) = triangle
     val pixel0 = toPixelPosition(a)
     interpolate(toPixelPosition(b), toPixelPosition(c)).foreach(interpolate(pixel0, _).foreach(placePixel(grid, _, color)))
+    val pixel1 = toPixelPosition(b)
+    interpolate(toPixelPosition(a), toPixelPosition(c)).foreach(interpolate(pixel1, _).foreach(placePixel(grid, _, color)))
+    val pixel2 = toPixelPosition(c)
+    interpolate(toPixelPosition(b), toPixelPosition(a)).foreach(interpolate(pixel2, _).foreach(placePixel(grid, _, color)))
     grid
   }
 

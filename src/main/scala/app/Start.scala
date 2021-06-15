@@ -14,6 +14,7 @@ import graphics.Triangle
 import math.Transformations
 import java.{util => ju}
 import math.Vector3
+import graphics.Cube
 
 object Palette {
   private val chars = Array(' ', '`', '.', ':', '-', '~', '=', 'o', '*', '#', '%', '@', '&', '$', 'M', 'W');
@@ -31,7 +32,9 @@ object Start extends App {
   val out = new BufferedWriter(new OutputStreamWriter(new
     FileOutputStream(java.io.FileDescriptor.out), "ASCII"), width * height);
 
-  val primitives = List(
+
+  
+  val axis = List(
     Line(Point(0, 0, 0), Point(1, 0, 0), Color(true, false, false, 1)),
     Line(Point(1, 0, 0), Point(1, 0, 1), Color(true, false, false, 1)),
     Line(Point(1, 0, 1), Point(0, 0, 1), Color(true, false, false, 1)),
@@ -61,8 +64,16 @@ object Start extends App {
     val focus = Vector3(0, 0, 0)
     val up = Vector3(0, 1, 0)
 
-    val transformer = Transformations.applyMatrix(Transformations.perspectiveMatrix(30, 0.5f * width.toFloat / height, 1, 40000) * Transformations.viewMatrix(eye, focus, up)) _
+    import math.MetricVectorSpace.ops._
 
+    def lightIntensity(normal: Vector3, dof: Vector3): Float = {
+      val scale = normal.normalize dot dof.normalize
+      if(scale > 0) scale
+      else 0
+    }
+
+    val transformer = Transformations.applyMatrix(Transformations.perspectiveMatrix(30, 0.5f * width.toFloat / height, 1, 40000) * Transformations.viewMatrix(eye, focus, up)) _
+    val primitives = axis ++ Cube(1.5f).surfaces.map(s => Triangle(s.a, s.b, s.c, Color(true, true, true, lightIntensity(s.normal, focus to eye))))
 
     out.write {
       canvas(primitives.map(transformer))
