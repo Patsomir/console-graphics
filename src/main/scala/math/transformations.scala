@@ -10,6 +10,11 @@ import graphics.Triangle
 object Transformations {
     import MetricVectorSpace.ops._
 
+    implicit class LinearTransformation(matrix: Matrix4x4) {
+        def apply(vec: Vector3): Vector3 = transform(matrix)(vec)
+        def apply(vec: Vector4): Vector4 = matrix * vec
+    }
+
     def perspectiveMatrix(viewAngle: Float, aspectRatio: Float, nearPlane: Float, farPlane: Float): Matrix4x4 = {
         val fov = 1.0f / tan(toRadians(viewAngle) / 2).toFloat
         Matrix4x4.fromCols(
@@ -42,5 +47,23 @@ object Transformations {
         case Vertex(point, color) => Vertex(transform(matrix)(point), color)
         case Line(start, end, color) => Line(transform(matrix)(start), transform(matrix)(end), color)
         case Triangle(a, b, c, color) => Triangle(transform(matrix)(a), transform(matrix)(b), transform(matrix)(c), color)
+    }
+
+    def translationMatrix(vec: Vector3): Matrix4x4 = {
+        Matrix4x4.fromCols(
+            Vector4(1, 0, 0, 0),
+            Vector4(0, 1, 0, 0),
+            Vector4(0, 0, 1, 0),
+            Vector4(vec.x, vec.y, vec.z, 1)
+        )
+    }
+
+    def scalingMatrix(xScaler: Float, yScaler: Float, zScaler: Float): Matrix4x4 = {
+        Matrix4x4.fromCols(
+            Vector4(xScaler, 0, 0, 0),
+            Vector4(0, yScaler, 0, 0),
+            Vector4(0, 0, zScaler, 0),
+            Vector4(0, 0, 0, 1)
+        )
     }
 }

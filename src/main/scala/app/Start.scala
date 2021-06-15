@@ -65,6 +65,7 @@ object Start extends App {
     val up = Vector3(0, 1, 0)
 
     import math.MetricVectorSpace.ops._
+    import math.Transformations.LinearTransformation
 
     def lightIntensity(normal: Vector3, dof: Vector3): Float = {
       val scale = normal.normalize dot dof.normalize
@@ -73,7 +74,13 @@ object Start extends App {
     }
 
     val transformer = Transformations.applyMatrix(Transformations.perspectiveMatrix(30, 0.5f * width.toFloat / height, 1, 40000) * Transformations.viewMatrix(eye, focus, up)) _
-    val primitives = axis ++ Cube(1.5f).surfaces.map(s => Triangle(s.a, s.b, s.c, Color(true, true, true, lightIntensity(s.normal, focus to eye))))
+    
+    val scaling = Transformations.scalingMatrix(0.5f, 1.5f, 1f)
+    val position = Transformations.translationMatrix(Vector3(1, 0, 0))
+
+    val f = position * scaling
+
+    val primitives = axis ++ Cube(1f).surfaces.map(s => Triangle(f(s.a), f(s.b), f(s.c), Color(true, true, true, lightIntensity(s.normal, focus to eye))))
 
     out.write {
       canvas(primitives.map(transformer))
