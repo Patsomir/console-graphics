@@ -16,6 +16,7 @@ import java.{util => ju}
 import math.Vector3
 import graphics.Cube
 import graphics.MatrixTransformer
+import graphics.PerspectiveProjector
 
 object Palette {
   private val chars = Array(' ', '`', '.', ':', '-', '~', '=', 'o', '*', '#', '%', '@', '&', '$', 'M', 'W');
@@ -68,21 +69,13 @@ object Start extends App {
     import math.MetricVectorSpace.ops._
     import math.Transformations.LinearTransformation
 
-    def lightIntensity(normal: Vector3, dof: Vector3): Float = {
-      val scale = normal.normalize dot dof.normalize
-      if(scale > 0) scale
-      else 0
-    }
+    val projector = PerspectiveProjector(eye, focus, up, eye to focus, 0.5f * width.toFloat / height)
+    val transformer = MatrixTransformer(Vector3(1, 0.5f, 0), 0.5f, 0.5f, 1.5f, 45, 45, 30)
 
-    val transformer = Transformations.applyMatrix(Transformations.perspectiveMatrix(30, 0.5f * width.toFloat / height, 1, 40000) * Transformations.viewMatrix(eye, focus, up)) _
-
-
-    val f = MatrixTransformer(Vector3(1, 0.5f, 0), 0.5f, 0.5f, 1.5f, 45, 45, 30)
-
-    val primitives = axis ++ f(Cube(1f)).surfaces.map(s => Triangle(s.a, s.b, s.c, Color(false, true, true, lightIntensity(s.normal, focus to eye))))
+    val primitives = axis.map(Transformations.applyMatrix(projector.projectionMatrix)) ++ projector(transformer(Cube(1f)), Color(true, true, true, 1))
 
     out.write {
-      canvas(primitives.map(transformer))
+      canvas(primitives)
         .foldRows(AnsiString.empty) {
           case (acc, CanvasFragment(color, _)) => acc + Palette.stringify(color)
         }
