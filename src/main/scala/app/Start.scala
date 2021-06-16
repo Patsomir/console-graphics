@@ -15,6 +15,7 @@ import math.Transformations
 import java.{util => ju}
 import math.Vector3
 import graphics.Cube
+import graphics.MatrixTransformer
 
 object Palette {
   private val chars = Array(' ', '`', '.', ':', '-', '~', '=', 'o', '*', '#', '%', '@', '&', '$', 'M', 'W');
@@ -74,17 +75,11 @@ object Start extends App {
     }
 
     val transformer = Transformations.applyMatrix(Transformations.perspectiveMatrix(30, 0.5f * width.toFloat / height, 1, 40000) * Transformations.viewMatrix(eye, focus, up)) _
-    
-    val scaling = Transformations.scalingMatrix(0.5f, 0.5f, 1.5f)
-    val position = Transformations.translationMatrix(Vector3(1, 0.5f, 0))
-    val xRotation = Transformations.xRotationMatrix(45)
-    val yRotation = Transformations.yRotationMatrix(45)
-    val zRotation = Transformations.zRotationMatrix(30)
 
-    val n = yRotation * xRotation * zRotation * scaling
-    val f = position * n
 
-    val primitives = axis ++ Cube(1f).surfaces.map(s => Triangle(f(s.a), f(s.b), f(s.c), Color(false, true, true, lightIntensity(n(s.normal), focus to eye))))
+    val f = MatrixTransformer(Vector3(1, 0.5f, 0), 0.5f, 0.5f, 1.5f, 45, 45, 30)
+
+    val primitives = axis ++ f(Cube(1f)).surfaces.map(s => Triangle(s.a, s.b, s.c, Color(false, true, true, lightIntensity(s.normal, focus to eye))))
 
     out.write {
       canvas(primitives.map(transformer))
@@ -97,7 +92,7 @@ object Start extends App {
     }
     out.flush()
 
-    Thread.sleep(40)
+    Thread.sleep(37)
   })
 
   })

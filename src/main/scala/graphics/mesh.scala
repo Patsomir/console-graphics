@@ -8,6 +8,10 @@ trait Mesh {
   def surfaces: List[Surface]
 }
 
+object Mesh {
+  def withSurfaces(list: List[Surface]): Mesh = new Mesh { val surfaces = list }
+}
+
 case class Cube(side: Float) extends Mesh {
 
   override val surfaces: List[Surface] = {
