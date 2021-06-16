@@ -85,4 +85,15 @@ case class PerspectiveProjector(eye: Vector3, focus: Vector3, up: Vector3, light
     projectionMatrix(surface.c),
     color.copy(intensity = color.intensity * intensityScaler(surface.normal))
   )
+
+  def project(start: Vector3, end: Vector3, color: Color): Line = Line(
+    projectionMatrix(start),
+    projectionMatrix(end),
+    color
+  )
+
+  def project(vertex: Vector3, color: Color): Vertex = Vertex(
+    projectionMatrix(vertex),
+    color
+  )
 }
