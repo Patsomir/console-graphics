@@ -1,7 +1,8 @@
 package graphics
 
-class Canvas private (width: Int, height: Int) {
-  type PixelGrid = Array[Array[CanvasFragment]]
+class Canvas private (width: Int, height: Int) extends Rasterizer {
+
+  type PixelGrid = Array[Array[RasterFragment]]
   case class PixelPosition(x: Int, y: Int, depth: Float)
 
   private def toPixelPosition(point: Point): PixelPosition = {
@@ -24,7 +25,7 @@ class Canvas private (width: Int, height: Int) {
 
 
   private def placePixel(grid: PixelGrid, pixel: PixelPosition , color: Color): Unit = 
-    if(onCanvas(pixel) && grid(pixel.y)(pixel.x).depth > pixel.depth) grid(pixel.y)(pixel.x) = CanvasFragment(color, pixel.depth)
+    if(onCanvas(pixel) && grid(pixel.y)(pixel.x).depth > pixel.depth) grid(pixel.y)(pixel.x) = RasterFragment(color, pixel.depth)
 
   private def drawVertex(grid: PixelGrid, vertex: Vertex): PixelGrid = {
     val Vertex(point, color) = vertex
@@ -49,11 +50,11 @@ class Canvas private (width: Int, height: Int) {
     grid
   }
 
-  def apply(primitives: List[Primitive]): CanvasOutput = new CanvasOutput(
+  override def rasterize(primitives: List[Primitive]): Raster = new CanvasRaster(
     primitives.foldLeft(
       (for {
       _ <- Range(0, height)
-      } yield Array.fill[CanvasFragment](width)(CanvasFragment(Color(false, false, false, 0), 2))).toArray
+      } yield Array.fill[RasterFragment](width)(RasterFragment(Color(false, false, false, 0), 2))).toArray
     ) {
       case (grid, vertex: Vertex) => drawVertex(grid, vertex)
       case (grid, line: Line) => drawLine(grid, line)
@@ -66,9 +67,8 @@ object Canvas {
   def apply(width: Int, height: Int) = new Canvas(width, height)
 }
 
-case class CanvasFragment(color: Color, depth: Float)
-
-class CanvasOutput private[graphics] (private val content: Array[Array[CanvasFragment]]) {
-  def foldRows[A](unit: A)(f: (A, CanvasFragment) => A): List[A] = content.toList.map(arr => arr.foldLeft(unit)(f))
+class CanvasRaster private[graphics] (private val content: Array[Array[RasterFragment]]) extends Raster {
+  override def foldLeft[A](unit: A)(f: (A, RasterFragment) => A): List[A] = content.toList.reverse.map(_.foldLeft(unit)(f))
+  override def foldRight[A](unit: A)(f: (RasterFragment, A) => A): List[A] = content.toList.reverse.map(arr => arr.foldRight(unit)(f))
 }
 

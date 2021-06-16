@@ -5,7 +5,7 @@ import graphics.Color
 import graphics.Canvas
 import graphics.Line
 import graphics.Point
-import graphics.CanvasFragment
+import graphics.RasterFragment
 import java.io.BufferedWriter
 import java.io.OutputStreamWriter
 import java.io.FileOutputStream
@@ -74,15 +74,17 @@ object Start extends App {
 
     val primitives = axis.map(Transformations.applyMatrix(projector.projectionMatrix)) ++ projector(transformer(Cube(1f)), Color(true, true, true, 1))
 
-    out.write {
-      canvas(primitives)
-        .foldRows(AnsiString.empty) {
-          case (acc, CanvasFragment(color, _)) => acc + Palette.stringify(color)
+    val ansi = canvas(primitives)
+      .foldLeftUp(AnsiString.empty, (1, AnsiString.empty.eraseScreen))(
+        {
+          case (acc, RasterFragment(color, _)) => acc + Palette.stringify(color)
+        },
+        {
+          case ((index, acc), row) => (index + 1, acc.moveTo(index, 1) + row)
         }
-        .reverse.zipWithIndex.foldLeft(AnsiString.empty.eraseScreen) {
-          case (acc, (row, index)) => acc.moveTo(index + 1, 1) + row
-        }.toString
-    }
+      )._2.toString
+    
+    out.write(ansi)
     out.flush()
 
     Thread.sleep(37)

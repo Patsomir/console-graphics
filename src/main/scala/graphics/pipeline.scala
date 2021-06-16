@@ -27,6 +27,31 @@ trait Projector {
   def apply(mesh: Mesh, color: Color): List[Triangle] = mesh.surfaces.map(apply(_, color))
 }
 
+trait Rasterizer {
+  def rasterize(primitives: List[Primitive]): Raster
+
+  def apply(primitives: List[Primitive]): Raster = rasterize(primitives)
+}
+
+case class RasterFragment(color: Color, depth: Float)
+
+trait Raster {
+  def foldLeft[A](unit: A)(f: (A, RasterFragment) => A): List[A]
+  def foldRight[A](unit: A)(f: (RasterFragment, A) => A): List[A]
+
+  def foldLeftUp[A, B](rowUnit: A, unit: B)(rowFolder: (A, RasterFragment) => A, folder: (B, A) => B): B =
+    foldLeft(rowUnit)(rowFolder).foldLeft(unit)(folder)
+
+  def foldLeftDown[A, B](rowUnit: A, unit: B)(rowFolder: (A, RasterFragment) => A, folder: (A, B) => B): B =
+    foldLeft(rowUnit)(rowFolder).foldRight(unit)(folder)
+
+  def foldRightUp[A, B](rowUnit: A, unit: B)(rowFolder: (RasterFragment, A) => A, folder: (B, A) => B): B =
+    foldRight(rowUnit)(rowFolder).foldLeft(unit)(folder)
+
+  def foldRightDown[A, B](rowUnit: A, unit: B)(rowFolder: (RasterFragment, A) => A, folder: (A, B) => B): B =
+    foldRight(rowUnit)(rowFolder).foldRight(unit)(folder)
+}
+
 case class MatrixTransformer(
   position: Vector3,
   xScale: Float = 1, yScale: Float = 1, zScale: Float = 1,
