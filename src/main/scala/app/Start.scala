@@ -75,12 +75,16 @@ object Start extends App {
 
     val transformer = Transformations.applyMatrix(Transformations.perspectiveMatrix(30, 0.5f * width.toFloat / height, 1, 40000) * Transformations.viewMatrix(eye, focus, up)) _
     
-    val scaling = Transformations.scalingMatrix(0.5f, 1.5f, 1f)
-    val position = Transformations.translationMatrix(Vector3(1, 0, 0))
+    val scaling = Transformations.scalingMatrix(1.25f, 1.5f, 0.75f)
+    val position = Transformations.translationMatrix(Vector3(1, 0.5f, 0))
+    val xRotation = Transformations.xRotationMatrix(-30)
+    val yRotation = Transformations.yRotationMatrix(60)
+    val zRotation = Transformations.zRotationMatrix(30)
 
-    val f = position * scaling
+    val n = xRotation * yRotation * zRotation * scaling
+    val f = position * n
 
-    val primitives = axis ++ Cube(1f).surfaces.map(s => Triangle(f(s.a), f(s.b), f(s.c), Color(true, true, true, lightIntensity(s.normal, focus to eye))))
+    val primitives = axis ++ Cube(1f).surfaces.map(s => Triangle(f(s.a), f(s.b), f(s.c), Color(true, true, true, lightIntensity(n(s.normal), focus to eye))))
 
     out.write {
       canvas(primitives.map(transformer))

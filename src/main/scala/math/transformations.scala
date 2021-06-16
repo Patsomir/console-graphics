@@ -1,6 +1,6 @@
 package math
 
-import scala.math.{ tan, toRadians }
+import scala.math.{ sin, cos, tan, toRadians }
 import graphics.Primitive
 import graphics.Vertex
 import graphics.Point
@@ -49,20 +49,52 @@ object Transformations {
         case Triangle(a, b, c, color) => Triangle(transform(matrix)(a), transform(matrix)(b), transform(matrix)(c), color)
     }
 
-    def translationMatrix(vec: Vector3): Matrix4x4 = {
+    def translationMatrix(vec: Vector3): Matrix4x4 = Matrix4x4.fromCols(
+        Vector4(1, 0, 0, 0),
+        Vector4(0, 1, 0, 0),
+        Vector4(0, 0, 1, 0),
+        Vector4(vec.x, vec.y, vec.z, 1)
+    )
+
+    def scalingMatrix(xScaler: Float, yScaler: Float, zScaler: Float): Matrix4x4 = Matrix4x4.fromCols(
+        Vector4(xScaler, 0, 0, 0),
+        Vector4(0, yScaler, 0, 0),
+        Vector4(0, 0, zScaler, 0),
+        Vector4(0, 0, 0, 1)
+    )
+
+    def xRotationMatrix(angle: Float): Matrix4x4 = {
+        val rads = toRadians(angle)
+        val sinAngle = sin(rads).toFloat
+        val cosAngle = cos(rads).toFloat
         Matrix4x4.fromCols(
             Vector4(1, 0, 0, 0),
-            Vector4(0, 1, 0, 0),
-            Vector4(0, 0, 1, 0),
-            Vector4(vec.x, vec.y, vec.z, 1)
+            Vector4(0, cosAngle, sinAngle, 0),
+            Vector4(0, -sinAngle, cosAngle, 0),
+            Vector4(0, 0, 0, 1)
         )
     }
 
-    def scalingMatrix(xScaler: Float, yScaler: Float, zScaler: Float): Matrix4x4 = {
+    def yRotationMatrix(angle: Float): Matrix4x4 = {
+        val rads = toRadians(angle)
+        val sinAngle = sin(rads).toFloat
+        val cosAngle = cos(rads).toFloat
         Matrix4x4.fromCols(
-            Vector4(xScaler, 0, 0, 0),
-            Vector4(0, yScaler, 0, 0),
-            Vector4(0, 0, zScaler, 0),
+            Vector4(-sinAngle, 0, cosAngle, 0),
+            Vector4(0, 1, 0, 0),
+            Vector4(cosAngle, 0, sinAngle, 0),
+            Vector4(0, 0, 0, 1)
+        )
+    }
+
+    def zRotationMatrix(angle: Float): Matrix4x4 = {
+        val rads = toRadians(angle)
+        val sinAngle = sin(rads).toFloat
+        val cosAngle = cos(rads).toFloat
+        Matrix4x4.fromCols(
+            Vector4(cosAngle, sinAngle, 0, 0),
+            Vector4(-sinAngle, cosAngle, 0, 0),
+            Vector4(0, 0, 1, 0),
             Vector4(0, 0, 0, 1)
         )
     }
