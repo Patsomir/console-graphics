@@ -2,7 +2,7 @@ package math
 
 import scala.math.sqrt
 
-trait MetricVectorSpace[V] {
+trait MetricVectorSpace[V] extends MetricSpace[V] {
   def add(left: V, right: V): V
   def scale(vec: V, scaler: Float): V
   def dot(left: V, right: V): Float
@@ -30,7 +30,7 @@ object MetricVectorSpace {
       def to(other: V): V = ms.to(vec, other)
       def length: Float = ms.length(vec)
       def normalize: V = ms.normalize(vec)
-      def distance(other: V) = ms.distance(vec, other)
+      def distanceTo(other: V) = ms.distance(vec, other)
     }
   }
 }
