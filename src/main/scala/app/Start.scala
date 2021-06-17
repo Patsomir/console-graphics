@@ -1,6 +1,6 @@
 package app
 
-import console.AnsiOps.AnsiString
+import console.AnsiString
 import graphics.Color
 import graphics.Canvas
 import graphics.Line
