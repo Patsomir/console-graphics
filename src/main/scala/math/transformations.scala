@@ -1,17 +1,16 @@
 package math
 
 import scala.math.{cos, sin, tan, toRadians}
-import graphics.Primitive
-import graphics.Vertex
-import graphics.Point
-import graphics.Line
-import graphics.Triangle
 
 object Transformations {
   import MetricVectorSpace.ops._
 
   implicit class LinearTransformation(matrix: Matrix4x4) {
-    def apply(vec: Vector3): Vector3 = transform(matrix)(vec)
+    def transform(vec: Vector3): Vector3 = {
+      val Vector4(x, y, z, t) = matrix * Vector4(vec.x, vec.y, vec.z, 1)
+      Vector3(x / t, y / t, z / t)
+    }
+    def apply(vec: Vector3): Vector3 = transform(vec)
     def apply(vec: Vector4): Vector4 = matrix * vec
   }
 
@@ -36,17 +35,6 @@ object Transformations {
       Vector4(upVector.z, sideVector.z, lookingDirection.z, 0),
       Vector4(-(upVector dot eye), -(sideVector dot eye), -(lookingDirection dot eye), 1)
     )
-  }
-
-  def transform(matrix: Matrix4x4)(vec: Vector3): Vector3 = {
-    val Vector4(x, y, z, t) = matrix * Vector4(vec.x, vec.y, vec.z, 1)
-    Vector3(x / t, y / t, z / t)
-  }
-
-  def applyMatrix(matrix: Matrix4x4)(primitive: Primitive): Primitive = primitive match {
-    case Vertex(point, color) => Vertex(transform(matrix)(point), color)
-    case Line(start, end, color) => Line(transform(matrix)(start), transform(matrix)(end), color)
-    case Triangle(a, b, c, color) => Triangle(transform(matrix)(a), transform(matrix)(b), transform(matrix)(c), color)
   }
 
   def translationMatrix(vec: Vector3): Matrix4x4 = Matrix4x4.fromCols(
