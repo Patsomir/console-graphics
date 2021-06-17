@@ -10,6 +10,7 @@ object Vector4 {
       Vector4(vec.x * scaler, vec.y * scaler, vec.z * scaler, vec.t * scaler)
     override def dot(left: Vector4, right: Vector4): Float =
       left.x * right.x + left.y * right.y + left.z * right.z + left.t * right.t
+    override def zero: Vector4 = Vector4(0, 0, 0, 0)
   }
 }
 
@@ -26,6 +27,7 @@ object Vector3 {
       Vector3(vec.x * scaler, vec.y * scaler, vec.z * scaler)
     override def dot(left: Vector3, right: Vector3): Float =
       left.x * right.x + left.y * right.y + left.z * right.z
+    override def zero: Vector3 = Vector3(0, 0, 0)
   }
 }
 
