@@ -8,7 +8,7 @@ import java.io.BufferedWriter
 import java.io.OutputStreamWriter
 import java.io.FileOutputStream
 import math.Vector3
-import graphics.Cube
+import graphics.meshes.Cube
 import graphics.MatrixTransformer
 import graphics.PerspectiveProjector
 import console.AnsiConsumer
