@@ -10,7 +10,8 @@ class Canvas private (width: Int, height: Int) extends Rasterizer {
 
     PixelPosition(pixelIndex(width, point.x), pixelIndex(height, point.y), point.z)
   }
-  private def onCanvas(pixel: PixelPosition): Boolean = pixel.x >= 0 && pixel.x < width && pixel.y >= 0 && pixel.y < height && pixel.depth >= -1 && pixel.depth <= 1
+  private def onCanvas(pixel: PixelPosition): Boolean =
+    pixel.x >= 0 && pixel.x < width && pixel.y >= 0 && pixel.y < height && pixel.depth >= -1 && pixel.depth <= 1
   private def interpolate(pixel0: PixelPosition, pixel1: PixelPosition): List[PixelPosition] = {
     val xLength = pixel1.x - pixel0.x
     val yLength = pixel1.y - pixel0.y
@@ -20,12 +21,16 @@ class Canvas private (width: Int, height: Int) extends Rasterizer {
     (for {
       i <- Range(0, totalPixels)
       step = i.toFloat / (totalPixels - 1)
-    } yield PixelPosition((pixel0.x + xLength * step).round, (pixel0.y + yLength * step).round, pixel0.depth + zLength * step)).toList
+    } yield PixelPosition(
+      (pixel0.x + xLength * step).round,
+      (pixel0.y + yLength * step).round,
+      pixel0.depth + zLength * step
+    )).toList
   }
 
-
-  private def placePixel(grid: PixelGrid, pixel: PixelPosition , color: Color): Unit = 
-    if(onCanvas(pixel) && grid(pixel.y)(pixel.x).depth > pixel.depth) grid(pixel.y)(pixel.x) = RasterFragment(color, pixel.depth)
+  private def placePixel(grid: PixelGrid, pixel: PixelPosition, color: Color): Unit =
+    if (onCanvas(pixel) && grid(pixel.y)(pixel.x).depth > pixel.depth)
+      grid(pixel.y)(pixel.x) = RasterFragment(color, pixel.depth)
 
   private def drawVertex(grid: PixelGrid, vertex: Vertex): PixelGrid = {
     val Vertex(point, color) = vertex
@@ -53,7 +58,7 @@ class Canvas private (width: Int, height: Int) extends Rasterizer {
   override def rasterize(primitives: List[Primitive]): Raster = new CanvasRaster(
     primitives.foldLeft(
       (for {
-      _ <- Range(0, height)
+        _ <- Range(0, height)
       } yield Array.fill[RasterFragment](width)(RasterFragment(Color(false, false, false, 0), 2))).toArray
     ) {
       case (grid, vertex: Vertex) => drawVertex(grid, vertex)
@@ -68,7 +73,8 @@ object Canvas {
 }
 
 class CanvasRaster private[graphics] (private val content: Array[Array[RasterFragment]]) extends Raster {
-  override def foldLeft[A](unit: A)(f: (A, RasterFragment) => A): List[A] = content.toList.reverse.map(_.foldLeft(unit)(f))
-  override def foldRight[A](unit: A)(f: (RasterFragment, A) => A): List[A] = content.toList.reverse.map(arr => arr.foldRight(unit)(f))
+  override def foldLeft[A](unit: A)(f: (A, RasterFragment) => A): List[A] =
+    content.toList.reverse.map(_.foldLeft(unit)(f))
+  override def foldRight[A](unit: A)(f: (RasterFragment, A) => A): List[A] =
+    content.toList.reverse.map(arr => arr.foldRight(unit)(f))
 }
-

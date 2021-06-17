@@ -54,19 +54,37 @@ trait Raster {
 
 case class MatrixTransformer(
   position: Vector3,
-  xScale: Float = 1, yScale: Float = 1, zScale: Float = 1,
-  xRotation: Float = 0, yRotation: Float = 0, zRotation: Float = 0
+  xScale: Float = 1,
+  yScale: Float = 1,
+  zScale: Float = 1,
+  xRotation: Float = 0,
+  yRotation: Float = 0,
+  zRotation: Float = 0
 ) extends Transformer {
   import math.Transformations._
 
-  val normalTransformationMatrix = yRotationMatrix(yRotation) * xRotationMatrix(xRotation) * zRotationMatrix(zRotation) * scalingMatrix(xScale, yScale, zScale)
+  val normalTransformationMatrix =
+    yRotationMatrix(yRotation) * xRotationMatrix(xRotation) * zRotationMatrix(zRotation) * scalingMatrix(
+      xScale,
+      yScale,
+      zScale
+    )
   val pointTransformationMatrix = translationMatrix(position) * normalTransformationMatrix
-  
+
   override def normalTransform(vec: Vector3): Vector3 = normalTransformationMatrix(vec)
   override def pointTransform(vec: Vector3): Vector3 = pointTransformationMatrix(vec)
 }
 
-case class PerspectiveProjector(eye: Vector3, focus: Vector3, up: Vector3, lightDir: Vector3, aspectRatio: Float, viewAngle: Float = 30, nearPlane: Float = 1, farPlane: Float = 40000) extends Projector {
+case class PerspectiveProjector(
+  eye: Vector3,
+  focus: Vector3,
+  up: Vector3,
+  lightDir: Vector3,
+  aspectRatio: Float,
+  viewAngle: Float = 30,
+  nearPlane: Float = 1,
+  farPlane: Float = 40000
+) extends Projector {
   import math.Transformations._
   import math.MetricVectorSpace.ops._
 
@@ -75,7 +93,7 @@ case class PerspectiveProjector(eye: Vector3, focus: Vector3, up: Vector3, light
 
   def intensityScaler(normal: Vector3): Float = {
     val scale = normal.normalize dot normalizedLightDir
-    if(scale > 0) scale
+    if (scale > 0) scale
     else 0
   }
 

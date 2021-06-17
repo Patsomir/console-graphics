@@ -19,28 +19,27 @@ object Start extends App {
   val width = 120
   val height = 40
   val canvas = Canvas(120, 40)
-  val out = new BufferedWriter(new OutputStreamWriter(new
-    FileOutputStream(java.io.FileDescriptor.out), "ASCII"), width * height);
+  val out = new BufferedWriter(
+    new OutputStreamWriter(new FileOutputStream(java.io.FileDescriptor.out), "ASCII"),
+    width * height
+  );
 
   val axis = List(
     (Point(0, 0, 0), Point(1, 0, 0), Color(true, false, false, 1)),
     (Point(1, 0, 0), Point(1, 0, 1), Color(true, false, false, 1)),
     (Point(1, 0, 1), Point(0, 0, 1), Color(true, false, false, 1)),
     (Point(0, 0, 1), Point(0, 0, 0), Color(true, false, false, 1)),
-
     (Point(0, 1, 0), Point(1, 1, 0), Color(false, true, false, 1)),
     (Point(1, 1, 0), Point(1, 1, 1), Color(false, true, false, 1)),
     (Point(1, 1, 1), Point(0, 1, 1), Color(false, true, false, 1)),
     (Point(0, 1, 1), Point(0, 1, 0), Color(false, true, false, 1)),
-
     (Point(0, 0, 0), Point(0, 1, 0), Color(false, false, true, 1)),
     (Point(1, 0, 0), Point(1, 1, 0), Color(false, false, true, 1)),
     (Point(1, 0, 1), Point(1, 1, 1), Color(false, false, true, 1)),
     (Point(0, 0, 1), Point(0, 1, 1), Color(false, false, true, 1)),
-
     (Point(-5, 0, 0), Point(5, 0, 0), Color(true, true, true, 0.1f)),
     (Point(0, -5, 0), Point(0, 5, 0), Color(true, true, true, 0.1f)),
-    (Point(0, 0, -5), Point(0, 0, 5), Color(true, true, true, 0.1f)),
+    (Point(0, 0, -5), Point(0, 0, 5), Color(true, true, true, 0.1f))
   )
 
   Range(0, 3).foreach(j => {
@@ -53,7 +52,10 @@ object Start extends App {
 
       val projector = PerspectiveProjector(eye, focus, up, eye to focus, 0.5f * width.toFloat / height)
       val transformer = MatrixTransformer(Vector3(1, 0.5f, 0), 0.5f, 0.5f, 1.5f, 45, 45, 30)
-      val primitives = axis.map { case (a, b, color) => projector.project(a, b, color) } ++ projector(transformer(Cube(1f)), Color(true, true, true, 1))
+      val primitives = axis.map { case (a, b, color) => projector.project(a, b, color) } ++ projector(
+        transformer(Cube(1f)),
+        Color(true, true, true, 1)
+      )
       val ansi = AnsiConsumer(canvas(primitives)).toString
 
       out.write(ansi)

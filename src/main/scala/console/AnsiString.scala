@@ -8,7 +8,7 @@ case class AnsiString(str: String) {
 
   def bold: AnsiString = this + Console.BOLD
   def reset: AnsiString = this + Console.RESET
-    
+
   def red: AnsiString = this + Console.RED
   def blue: AnsiString = this + Console.BLUE
   def green: AnsiString = this + Console.GREEN
