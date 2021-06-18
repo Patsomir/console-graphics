@@ -6,23 +6,23 @@ import scala.annotation.tailrec
 
 sealed trait TetrominoState {
   def toRight: TetrominoState = this match {
-    case Up => Right
-    case Right => Down
-    case Down => Left
-    case Left => Up
+    case Spawn => Clockwise
+    case Clockwise => Inverted
+    case Inverted => Counterclockwise
+    case Counterclockwise => Spawn
   }
 
   def toLeft: TetrominoState = this match {
-    case Up => Left
-    case Right => Up
-    case Down => Right
-    case Left => Down
+    case Spawn => Counterclockwise
+    case Clockwise => Spawn
+    case Inverted => Clockwise
+    case Counterclockwise => Inverted
   }
 }
-case object Up extends TetrominoState
-case object Right extends TetrominoState
-case object Down extends TetrominoState
-case object Left extends TetrominoState
+case object Spawn extends TetrominoState
+case object Clockwise extends TetrominoState
+case object Inverted extends TetrominoState
+case object Counterclockwise extends TetrominoState
 
 sealed trait TetrominoShape
 case object IShape extends TetrominoShape
@@ -32,6 +32,8 @@ case object OShape extends TetrominoShape
 case object SShape extends TetrominoShape
 case object TShape extends TetrominoShape
 case object ZShape extends TetrominoShape
+
+case class TetrominoPoint(row: Int, col: Int, isOccupied: Boolean)
 
 case class Tetromino private (
   val grid: List[List[Boolean]], 
@@ -55,17 +57,18 @@ case class Tetromino private (
 
     this.copy(grid = rotateHelper(grid, Nil), state = state.toRight)
   }
-  
-  def isOccupied(x: Int, y: Int): Boolean = Try(grid(y)(x)) match {
-    case Success(true) => true
-    case _ => false
+
+  def fold[A](unit: A)(f: (A, TetrominoPoint) => A): A = grid.map(_.zipWithIndex).zipWithIndex.foldLeft(unit) {
+    case (acc, (row, rowIndex)) => row.foldLeft(acc) {
+      case (rowAcc, (isOccupied, colIndex)) => f(rowAcc, TetrominoPoint(rowIndex, colIndex, isOccupied))
+    }
   }
 
   def size: Int = grid.length
 }
 
 object Tetromino {
-  private def apply(grid: List[List[Boolean]], shape: TetrominoShape, state: TetrominoState = Up): Tetromino = new Tetromino(grid, shape, state)
+  private def apply(grid: List[List[Boolean]], shape: TetrominoShape, state: TetrominoState = Spawn): Tetromino = new Tetromino(grid, shape, state)
 
   val I = Tetromino(
     List(
