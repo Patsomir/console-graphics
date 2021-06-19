@@ -41,8 +41,8 @@ case class Tetromino private (
   def rotateRight: Tetromino = {
     @tailrec
     def rotateHelper(rest: List[List[Boolean]], acc: List[List[Boolean]]): List[List[Boolean]] =
-      if(rest.isEmpty) acc
-      else rotateHelper(tiles.map(_.tail), tiles.map(_.head) :: acc)
+      if(rest.head.isEmpty) acc
+      else rotateHelper(rest.map(_.tail), rest.map(_.head) :: acc)
 
     this.copy(tiles = rotateHelper(tiles, Nil), state = state.toRight)
   }
@@ -50,10 +50,10 @@ case class Tetromino private (
   def rotateLeft: Tetromino = {
     @tailrec
     def rotateHelper(rest: List[List[Boolean]], acc: List[List[Boolean]]): List[List[Boolean]] =
-      if(rest.isEmpty) acc.reverse
-      else rotateHelper(tiles.map(_.tail), tiles.map(_.head).reverse :: acc)
+      if(rest.head.isEmpty) acc.reverse
+      else rotateHelper(rest.map(_.tail), rest.map(_.head).reverse :: acc)
 
-    this.copy(tiles = rotateHelper(tiles, Nil), state = state.toRight)
+    this.copy(tiles = rotateHelper(tiles, Nil), state = state.toLeft)
   }
 
   def size: Int = tiles.length
@@ -113,7 +113,7 @@ object Tetromino {
       List(true, true, true),
       List(false, true, false),
     ),
-    LShape
+    TShape
   )
 
   val Z = Tetromino(
@@ -122,6 +122,6 @@ object Tetromino {
       List(false, true, true),
       List(true, true, false),
     ),
-    LShape
+    ZShape
   )
 }
