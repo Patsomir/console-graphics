@@ -3,7 +3,7 @@ package app.tetris
 sealed trait TetrisError
 case object IllegalAction extends TetrisError
 
-class Tetris {
+object Tetris {
   private def move(state: GameState)(rowOffset: Int, colOffset: Int): Either[TetrisError, GameState] =
     state match {
       case GameState(board, tetramino, row, col) =>
