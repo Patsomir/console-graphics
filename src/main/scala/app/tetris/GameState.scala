@@ -9,7 +9,7 @@ case class GameState(board: Board, activeTetromino: Tetromino, cursorRow: Int, c
       case GridPoint(row, col, Some(shape)) => Some(GridPoint(row, col, shape))
       case _ => None
     }) ++ activeTetromino.mapPointsWith(_ match {
-      case GridPoint(row, col, true) => Some(GridPoint(row, col, activeTetromino.shape))
+      case GridPoint(row, col, true) => Some(GridPoint(row + cursorRow, col + cursorCol, activeTetromino.shape))
       case _ => None
     })
 }
