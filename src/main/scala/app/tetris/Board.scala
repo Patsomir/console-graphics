@@ -7,12 +7,10 @@ sealed trait BoardError
 case object InvalidPlacement extends BoardError
 case object OutOfBoardBounds extends BoardError
 
-case class BoardPoint(row: Int, col: Int, tile: Option[TetrominoShape])
-
-class Board private (tiles: Vector[Vector[Option[TetrominoShape]]]) {
+class Board private (val tiles: Vector[Vector[Option[TetrominoShape]]]) extends Grid[Option[TetrominoShape]] {
 
   val height: Int = tiles.length
-  val width: Int = tiles(0).length
+  val width: Int = Try(tiles(0).length).getOrElse(0)
 
   def slice(row: Int, col: Int, sliceWidth: Int, sliceHeight: Int): Vector[Vector[Option[TetrominoShape]]] =
     tiles.slice(col, col + sliceHeight).map(_.slice(row, row + sliceWidth))
@@ -21,7 +19,7 @@ class Board private (tiles: Vector[Vector[Option[TetrominoShape]]]) {
 
   private def targetPoints(tetromino: Tetromino)(row: Int, col: Int): List[(Int, Int)] =
     tetromino.fold(List.empty[(Int, Int)]) {
-      case (acc, TetrominoPoint(localRow, localCol, true)) => (row + localRow, col + localCol) :: acc
+      case (acc, GridPoint(localRow, localCol, true)) => (row + localRow, col + localCol) :: acc
       case (acc, _) => acc
     }
 
@@ -48,12 +46,6 @@ class Board private (tiles: Vector[Vector[Option[TetrominoShape]]]) {
   }
 
   def apply(row: Int, col: Int): Either[BoardError, Option[TetrominoShape]] = get(row, col)
-
-  def fold[A](unit: A)(f: (A, BoardPoint) => A): A = tiles.map(_.zipWithIndex).zipWithIndex.foldLeft(unit) {
-    case (acc, (row, rowIndex)) => row.foldLeft(acc) {
-      case (rowAcc, (tile, colIndex)) => f(rowAcc, BoardPoint(rowIndex, colIndex, tile))
-    }
-  }
 }
 
 object Board {

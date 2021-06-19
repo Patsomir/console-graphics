@@ -33,38 +33,30 @@ case object SShape extends TetrominoShape
 case object TShape extends TetrominoShape
 case object ZShape extends TetrominoShape
 
-case class TetrominoPoint(row: Int, col: Int, isOccupied: Boolean)
-
 case class Tetromino private (
-  val grid: List[List[Boolean]], 
+  val tiles: List[List[Boolean]], 
   val shape: TetrominoShape,
   val state: TetrominoState
-) {
+) extends Grid[Boolean] {
   def rotateRight: Tetromino = {
     @tailrec
     def rotateHelper(rest: List[List[Boolean]], acc: List[List[Boolean]]): List[List[Boolean]] =
       if(rest.isEmpty) acc
-      else rotateHelper(grid.map(_.tail), grid.map(_.head) :: acc)
+      else rotateHelper(tiles.map(_.tail), tiles.map(_.head) :: acc)
 
-    this.copy(grid = rotateHelper(grid, Nil), state = state.toRight)
+    this.copy(tiles = rotateHelper(tiles, Nil), state = state.toRight)
   }
 
   def rotateLeft: Tetromino = {
     @tailrec
     def rotateHelper(rest: List[List[Boolean]], acc: List[List[Boolean]]): List[List[Boolean]] =
       if(rest.isEmpty) acc.reverse
-      else rotateHelper(grid.map(_.tail), grid.map(_.head).reverse :: acc)
+      else rotateHelper(tiles.map(_.tail), tiles.map(_.head).reverse :: acc)
 
-    this.copy(grid = rotateHelper(grid, Nil), state = state.toRight)
+    this.copy(tiles = rotateHelper(tiles, Nil), state = state.toRight)
   }
 
-  def fold[A](unit: A)(f: (A, TetrominoPoint) => A): A = grid.map(_.zipWithIndex).zipWithIndex.foldLeft(unit) {
-    case (acc, (row, rowIndex)) => row.foldLeft(acc) {
-      case (rowAcc, (isOccupied, colIndex)) => f(rowAcc, TetrominoPoint(rowIndex, colIndex, isOccupied))
-    }
-  }
-
-  def size: Int = grid.length
+  def size: Int = tiles.length
 }
 
 object Tetromino {
