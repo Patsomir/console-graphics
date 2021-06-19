@@ -17,21 +17,36 @@ class Board private (val tiles: Vector[Vector[Option[TetrominoShape]]]) extends 
 
   def get(row: Int, col: Int): Either[BoardError, Option[TetrominoShape]] = Try(tiles(row)(col)).toOption.toRight(OutOfBoardBounds)
 
-  private def targetPoints(tetromino: Tetromino)(row: Int, col: Int): List[(Int, Int)] =
+  def targetPoints(tetromino: Tetromino)(row: Int, col: Int): List[(Int, Int)] =
     tetromino.fold(List.empty[(Int, Int)]) {
       case (acc, GridPoint(localRow, localCol, true)) => (row + localRow, col + localCol) :: acc
       case (acc, _) => acc
     }
 
-  def canFit(tetromino: Tetromino)(row: Int, col: Int): Boolean = {
-    val points = targetPoints(tetromino)(row, col)
-    points.forall(
-      (get _).tupled(_) match {
-        case Right(None) => true
-        case _ => false
-      }
-    )
-  }
+  def canFit(row: Int, col: Int) =
+    get(row, col) match {
+      case Right(None) => true
+      case _ => false
+    }
+  
+  def canFit(points: List[(Int, Int)]): Boolean =
+    points.forall {
+      case (row, col) => canFit(row, col)
+    }
+
+  def canFit(tetromino: Tetromino)(row: Int, col: Int): Boolean =
+    canFit(targetPoints(tetromino)(row, col))
+
+  def consistentWith(row: Int, col: Int) =
+    (Range(0, width).contains(col) && row >= height) || canFit(row, col)
+  
+  def consistentWith(points: List[(Int, Int)]): Boolean =
+    points.forall {
+      case (row, col) => consistentWith(row, col)
+    }
+
+  def consistentWith(tetromino: Tetromino)(row: Int, col: Int): Boolean =
+    consistentWith(targetPoints(tetromino)(row, col))
 
   def place(tetromino: Tetromino)(row: Int, col: Int): Either[BoardError, Board] = {
     val points = targetPoints(tetromino)(row, col)
