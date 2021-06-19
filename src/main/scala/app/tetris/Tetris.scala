@@ -4,12 +4,14 @@ sealed trait TetrisError
 case object IllegalAction extends TetrisError
 
 object Tetris {
-  private def move(state: GameState)(rowOffset: Int, colOffset: Int): Either[TetrisError, GameState] =
-    state match {
-      case GameState(board, tetramino, row, col) =>
-        if(board.canFit(tetramino)(row + rowOffset, col + colOffset)) Left(IllegalAction)
-        else Right(GameState(board, tetramino, row + rowOffset, col + colOffset))
-    }
+  def move(state: GameState)(rowOffset: Int, colOffset: Int): Either[TetrisError, GameState] = {
+    val GameState(board, tetromino, row, col) = state
+    Either.cond(
+      board.consistentWith(tetromino)(row + rowOffset, col + colOffset),
+      GameState(board, tetromino, row + rowOffset, col + colOffset),
+      IllegalAction
+    )
+  }
 
   private def moveFirst(state: GameState)(offsets: List[(Int, Int)]): Either[TetrisError, GameState] =
     offsets.foldLeft(Left(IllegalAction) : Either[TetrisError, GameState]) {
@@ -46,11 +48,14 @@ object Tetris {
     }
   }
 
-  private def place(state: GameState)(newTetromino: Tetromino): Either[TetrisError, GameState] =
-    (state.board.place(state.activeTetromino)(state.cursorRow, state.cursorRow), move(state)(-1, 0)) match {
+  private def place(state: GameState)(newTetromino: Tetromino): Either[TetrisError, GameState] = {
+    val GameState(board, tetromino, row, col) = state
+    (board.place(tetromino)(row, col), move(state)(-1, 0)) match {
       case (Right(newBoard), Left(_)) => Right(state.copy(board = newBoard).newActiveTetromino(newTetromino))
       case _ => Left(IllegalAction)
     }
+  }
+    
 
   def apply(state: GameState, action: GameAction): Either[TetrisError, GameState] =
     (state, action) match {
