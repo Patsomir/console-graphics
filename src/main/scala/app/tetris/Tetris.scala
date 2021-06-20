@@ -66,4 +66,6 @@ object Tetris {
       case (_, RotateRight) => rotateRight(state)
       case (_, Place(newTetromino)) => place(state)(newTetromino)
     }
+  
+  def ifLegal(state: GameState, action: GameAction): GameState = apply(state, action).getOrElse(state)
 }
