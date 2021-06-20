@@ -55,7 +55,7 @@ class Canvas private (width: Int, height: Int) extends Rasterizer {
     grid
   }
 
-  override def rasterize(primitives: List[Primitive]): Raster = new CanvasRaster(
+  override def rasterize(primitives: Iterable[Primitive]): Raster = new CanvasRaster(
     primitives.foldLeft(
       (for {
         _ <- Range(0, height)

@@ -12,6 +12,8 @@ object Vector4 {
       left.x * right.x + left.y * right.y + left.z * right.z + left.t * right.t
     override def zero: Vector4 = Vector4(0, 0, 0, 0)
   }
+
+  val zero = MetricVectorSpace[Vector4].zero
 }
 
 case class Vector3(x: Float, y: Float, z: Float) {
@@ -29,6 +31,8 @@ object Vector3 {
       left.x * right.x + left.y * right.y + left.z * right.z
     override def zero: Vector3 = Vector3(0, 0, 0)
   }
+
+  val zero = MetricVectorSpace[Vector3].zero
 }
 
 case class Matrix4x4(col1: Vector4, col2: Vector4, col3: Vector4, col4: Vector4) {
