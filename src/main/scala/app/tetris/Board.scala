@@ -49,6 +49,7 @@ class Board private (val tiles: Vector[Vector[Option[TetrominoShape]]]) extends 
     consistentWith(targetPoints(tetromino)(row, col))
 
   def place(tetromino: Tetromino)(row: Int, col: Int): Either[BoardError, Board] = {
+    if(consistentWith(tetromino)(row - 1, col)) Left(InvalidPlacement)
     val points = targetPoints(tetromino)(row, col)
     val newTiles = points.foldLeft(Right(tiles) : Either[BoardError, Vector[Vector[Option[TetrominoShape]]]]) {
       case (acc, (boardRow, boardCol)) =>
@@ -57,7 +58,12 @@ class Board private (val tiles: Vector[Vector[Option[TetrominoShape]]]) extends 
           case _ => Left(InvalidPlacement)
         }
     }
-    newTiles.map(Board(_))
+    newTiles.map(Board(_).removeFullRows)
+  }
+
+  def removeFullRows: Board = {
+    val (full, rest) = tiles.partition(_.forall(_.isDefined))
+    Board(rest ++ Board.empty(width, full.length).tiles)
   }
 
   def apply(row: Int, col: Int): Either[BoardError, Option[TetrominoShape]] = get(row, col)

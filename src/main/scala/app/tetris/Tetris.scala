@@ -50,12 +50,11 @@ object Tetris {
 
   private def place(state: GameState)(newTetromino: Tetromino): Either[TetrisError, GameState] = {
     val GameState(board, tetromino, row, col) = state
-    (board.place(tetromino)(row, col), move(state)(-1, 0)) match {
-      case (Right(newBoard), Left(_)) => Right(state.copy(board = newBoard).newActiveTetromino(newTetromino))
-      case _ => Left(IllegalAction)
-    }
+    board.place(tetromino)(row, col).fold(
+      _ => Left(IllegalAction),
+      newBoard => Right(state.copy(board = newBoard).newActiveTetromino(newTetromino))
+    )
   }
-    
 
   def apply(state: GameState, action: GameAction): Either[TetrisError, GameState] =
     (state, action) match {
