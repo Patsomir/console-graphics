@@ -18,6 +18,9 @@ import java.util.concurrent.ForkJoinPool
 import scala.concurrent.Future
 import scala.annotation.tailrec
 import scala.util.Random
+import scala.math.{ cos, sin, toRadians }
+
+case class Polar(distance: Float, hAngle: Float, vAngle: Float)
 
 object AppUtils {
   def shapeColor(shape: TetrominoShape): Color = shape match {
@@ -102,6 +105,24 @@ object AppUtils {
     case _ => None
   }
 
+  def cameraMovement(rotateStep: Float, zoomStep: Float, str: String): Polar = str match {
+    case "j" => Polar(0, -rotateStep, 0)
+    case "l" => Polar(0, rotateStep, 0)
+    case "k" => Polar(0, 0, -rotateStep)
+    case "i" => Polar(0, 0, rotateStep)
+    case "o" => Polar(-zoomStep, 0, 0)
+    case "u" => Polar(zoomStep, 0, 0)
+    case _ => Polar(0, 0, 0)
+  }
+
+  def polarToEuclidian(polar: Polar): Vector3 = {
+    val Polar(distance, hAngle, vAngle) = polar
+    val v = toRadians(vAngle)
+    val h = toRadians(hAngle)
+    val d = cos(v).toFloat * distance
+    Vector3(sin(h).toFloat * d, sin(v).toFloat * distance, cos(h).toFloat * d)
+  }
+
   val tetrominos = Vector(Tetromino.I, Tetromino.J, Tetromino.L, Tetromino.O, Tetromino.S, Tetromino.T, Tetromino.Z)
   def newTetramino() = {
     tetrominos(rng.nextInt(tetrominos.length))
@@ -116,26 +137,34 @@ object AppUtils {
 object TetrisApp extends App {
   import AppUtils._
 
-  val eye = Vector3(2, 5, 10)
   val focus = Vector3(0, 0, 0)
+  val rotateStep = 10.0f
+  val zoomStep = 2.0f
 
   implicit val ec: ExecutionContext = ExecutionContext.fromExecutor(new ForkJoinPool)
 
-  val newGame = Future.successful(GameState.newGameState(10, 5, newTetramino))
-  newGame.map(s => bufferedPrintLn(reduceState(s)(eye, focus)))
+  val newGame = Future.successful((GameState.newGameState(10, 5, newTetramino), Polar(10.5f, 0, 0)))
+  newGame.map {
+    case (state, camera) => bufferedPrintLn(reduceState(state)(polarToEuclidian(camera), focus))
+  }
 
-  @tailrec
-  def readAndWrite(state: Future[GameState]): Unit = {
+  def readAndWrite(state: Future[(GameState, Polar)]): Unit = {
     val command = Console.in.readLine().toString
-    if(command == "exit") ()
-    else readAndWrite(action(command) match {
-      case Some(action) => {
-        val newState = state.map(resolveAction(_, action))
-        newState.map(s => bufferedPrintLn(reduceState(s)(eye, focus)))
-        newState
+    if(command != "exit") {
+      val Polar(dOffset, hOffset, vOffset) = cameraMovement(rotateStep, zoomStep, command)
+      val newState = (action(command) match {
+        case Some(action) => state.map {
+          case (s, camera) => (resolveAction(s, action), camera)
+        }
+        case None => state
+      }).map {
+        case (s, Polar(d, h, v)) => (s, Polar(d + dOffset, h + hOffset, v + vOffset))
       }
-      case None => state
-    })
+      newState.map {
+        case (state, camera) => bufferedPrintLn(reduceState(state)(polarToEuclidian(camera), focus))
+      }
+      readAndWrite(newState)
+    }
   }
 
   readAndWrite(newGame)
