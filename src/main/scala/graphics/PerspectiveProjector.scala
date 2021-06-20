@@ -11,7 +11,7 @@ case class PerspectiveProjector(
   viewAngle: Float = 30,
   nearPlane: Float = 1,
   farPlane: Float = 40000
-) extends Projector {
+) extends OutlineProjector with MeshProjector {
   import math.Transformations._
   import math.MetricVectorSpace.ops._
 
@@ -24,21 +24,12 @@ case class PerspectiveProjector(
     else 0
   }
 
-  override def project(surface: Surface, color: Color): Triangle = Triangle(
+  def project(surface: Surface, color: Color): Triangle = Triangle(
     projectionMatrix(surface.a),
     projectionMatrix(surface.b),
     projectionMatrix(surface.c),
     color.copy(intensity = color.intensity * intensityScaler(surface.normal))
   )
 
-  def project(start: Vector3, end: Vector3, color: Color): Line = Line(
-    projectionMatrix(start),
-    projectionMatrix(end),
-    color
-  )
-
-  def project(vertex: Vector3, color: Color): Vertex = Vertex(
-    projectionMatrix(vertex),
-    color
-  )
+  def project(point: Vector3): Point = projectionMatrix(point)
 }

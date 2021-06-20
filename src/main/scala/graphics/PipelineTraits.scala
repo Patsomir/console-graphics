@@ -1,6 +1,8 @@
 package graphics
 
 import math.Vector3
+import java.awt.PointerInfo
+import javax.swing.InputVerifier
 
 trait Transformer {
   import math.MetricVectorSpace.ops._
@@ -28,11 +30,24 @@ trait Transformer {
   def transformPoints(points: Iterable[Vector3]): Iterable[Vector3] = points.map(apply)
 }
 
-trait Projector {
+trait MeshProjector {
   def project(surface: Surface, color: Color): Triangle
 
   def apply(surface: Surface, color: Color): Triangle = project(surface, color)
   def apply(mesh: Mesh, color: Color): Iterable[Triangle] = mesh.surfaces.map(apply(_, color))
+}
+
+trait OutlineProjector {
+  def project(point: Vector3): Point
+
+  def apply(a: Vector3, b: Vector3, color: Color): Line = Line(project(a), project(b), color)
+  def apply(point: Vector3, color: Color): Vertex = Vertex(point, color)
+
+  def projectLines(lines: Iterable[(Vector3, Vector3)], color: Color): Iterable[Line] = lines.map {
+    case (a, b) => apply(a, b, color)
+  }
+
+  def projectPoints(points: Iterable[Vector3], color: Color): Iterable[Vertex] = points.map(apply(_, color))
 }
 
 trait Rasterizer {

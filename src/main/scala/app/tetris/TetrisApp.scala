@@ -83,11 +83,11 @@ object AppUtils {
     val primitives = blockTransformers.flatMap {
       case (transformer, color) => projector(transformer(unitCube), color)
     } ++ outlineTransformers.flatMap(t => t.transformLines(frontWall).map {
-      case (a, b) => projector.project(a, b, Color(true, true, true, 0.5f))
+      case (a, b) => projector(a, b, Color(true, true, true, 0.5f))
     }) ++ outlineTransformers.flatMap(t => t.transformLines(midLines).map {
-      case (a, b) => projector.project(a, b, Color(false, true, false, 0.5f))
+      case (a, b) => projector(a, b, Color(false, true, false, 0.5f))
     }) ++ outlineTransformers.flatMap(t => t.transformLines(backWall).map {
-      case (a, b) => projector.project(a, b, Color(true, false, false, 0.5f))
+      case (a, b) => projector(a, b, Color(true, false, false, 0.5f))
     })
 
     AnsiConsumer(canvas(primitives)).toString
