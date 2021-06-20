@@ -23,4 +23,8 @@ case class MatrixTransformer(
 
   override def normalTransform(vec: Vector3): Vector3 = normalTransformationMatrix(vec)
   override def pointTransform(vec: Vector3): Vector3 = pointTransformationMatrix(vec)
+
+  def transformLines(lines: List[(Vector3, Vector3)]): List[(Vector3, Vector3)] = lines.map {
+    case (a, b) => (pointTransform(a), pointTransform(b))
+  }
 }
