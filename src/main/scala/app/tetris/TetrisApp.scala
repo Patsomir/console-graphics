@@ -5,93 +5,103 @@ import java.io.BufferedWriter
 import java.io.OutputStreamWriter
 import java.io.FileOutputStream
 import math.Vector3
-import graphics.PerspectiveProjector
-import graphics.MatrixTransformer
-import console.AnsiConsumer
-import math.MetricVectorSpace.ops._
-import graphics.meshes.Cube
-import graphics.Color
-import graphics.Primitive
-import ch.qos.logback.core.helpers.Transform
 import scala.concurrent.ExecutionContext
 import java.util.concurrent.ForkJoinPool
 import scala.concurrent.Future
 import scala.annotation.tailrec
 import scala.util.Random
 
-object AppUtils {
-  val rng = new Random
+
+object TetrisAppUtils {
+  sealed trait Input
+  case class GameInput(action: GameAction) extends Input
+  case class CameraInput(offset: Polar) extends Input
+  case object Exit extends Input
+
+  case class AppState(game: GameState, camera: Polar, seed: Int)
+  object AppState {
+    def initial(tetrisRows: Int, tetrisCols: Int, seed: Int): AppState = {
+      val (tetromino, newSeed) = newTetromino(seed)
+      AppState(GameState.newGameState(tetrisCols, tetrisRows, tetromino), Polar(10.5f, 0, 0), newSeed)
+    }
+  }
+
+  implicit val ec: ExecutionContext = ExecutionContext.fromExecutor(new ForkJoinPool)
   val out = new BufferedWriter(
     new OutputStreamWriter(new FileOutputStream(java.io.FileDescriptor.out), "ASCII"),
     2048
   )
+
   def bufferedPrintLn(s: String): Unit = {
     out.write(s + "\n")
     out.flush()
   }
-  def action(str: String): Option[GameAction] = str match {
-    case "a" => Some(MoveLeft)
-    case "d" => Some(MoveRight)
-    case "s" => Some(MoveDown)
-    case "q" => Some(RotateLeft)
-    case "e" => Some(RotateRight)
+
+  val rotateStep = 10.0f
+  val zoomStep = 2.0f
+  def parseInput(str: String): Option[Input] = str match {
+    case "a" => Some(GameInput(MoveLeft))
+    case "d" => Some(GameInput(MoveRight))
+    case "s" => Some(GameInput(MoveDown))
+    case "q" => Some(GameInput(RotateLeft))
+    case "e" => Some(GameInput(RotateRight))
+    case "j" => Some(CameraInput(Polar(0, -rotateStep, 0)))
+    case "l" => Some(CameraInput(Polar(0, rotateStep, 0)))
+    case "k" => Some(CameraInput(Polar(0, 0, -rotateStep)))
+    case "i" => Some(CameraInput(Polar(0, 0, rotateStep)))
+    case "o" => Some(CameraInput(Polar(-zoomStep, 0, 0)))
+    case "u" => Some(CameraInput(Polar(zoomStep, 0, 0)))
+    case "exit" => Some(Exit)
     case _ => None
   }
-  def cameraMovement(rotateStep: Float, zoomStep: Float, str: String): Polar = str match {
-    case "j" => Polar(0, -rotateStep, 0)
-    case "l" => Polar(0, rotateStep, 0)
-    case "k" => Polar(0, 0, -rotateStep)
-    case "i" => Polar(0, 0, rotateStep)
-    case "o" => Polar(-zoomStep, 0, 0)
-    case "u" => Polar(zoomStep, 0, 0)
-    case _ => Polar(0, 0, 0)
-  }
+
   val tetrominos = Vector(Tetromino.I, Tetromino.J, Tetromino.L, Tetromino.O, Tetromino.S, Tetromino.T, Tetromino.Z)
-  def newTetramino() = {
-    tetrominos(rng.nextInt(tetrominos.length))
+  def newTetromino(seed: Int): (Tetromino, Int) = (tetrominos(new Random(seed).nextInt(tetrominos.length)), seed + 1)
+
+  def resolveInput(state: AppState, input: Input): AppState = input match {
+    case GameInput(MoveDown) => {
+      val (tetromino, newSeed) = newTetromino(state.seed)
+      AppState(Tetris(state.game, MoveDown).getOrElse(Tetris.ifLegal(state.game, Place(tetromino))), state.camera, newSeed)
+    }
+    case GameInput(action) => state.copy(game = Tetris.ifLegal(state.game, action))
+    case CameraInput(Polar(distOffset, hOffset, vOffset)) => {
+      val Polar(dist, h, v) = state.camera
+      state.copy(camera = Polar(dist + distOffset, h + hOffset, v + vOffset))
+    }
+    case _ => state
   }
-  def resolveAction(state: GameState, action: GameAction): GameState = action match {
-    case MoveDown => Tetris(state, MoveDown).getOrElse(Tetris.ifLegal(state, Place(newTetramino)))
-    case _ => Tetris.ifLegal(state, action)
+
+  def displayAppState(state: AppState)(implicit tools: TetrisDrawingTools): Unit = {
+    out.write(tools.reduceState(state.game)(state.camera, Vector3.zero) + "\n")
+    out.flush()
   }
 }
 
 object TetrisApp extends App {
-  import AppUtils._
+  import TetrisAppUtils._
 
   val width = 160
   val height = 40
-  val focus = Vector3(0, 0, 0)
-  val rotateStep = 10.0f
-  val zoomStep = 2.0f
+  implicit val tools = TetrisDrawingTools(width, height)
 
-  val tools = TetrisDrawingTools(width, height)
+  val tetrisRows = 5
+  val tetrisCols = 10
+  val newGame = AppState.initial(tetrisRows, tetrisCols, System.nanoTime.toInt)
+  val screen = Future(displayAppState(newGame))
 
-  implicit val ec: ExecutionContext = ExecutionContext.fromExecutor(new ForkJoinPool)
-
-  val newGame = Future.successful((GameState.newGameState(10, 5, newTetramino), Polar(10.5f, 0, 0)))
-  newGame.map {
-    case (state, camera) => bufferedPrintLn(tools.reduceState(state)(camera, focus))
-  }
-
-  def readAndWrite(state: Future[(GameState, Polar)]): Unit = {
-    val command = Console.in.readLine().toString
-    if(command != "exit") {
-      val Polar(dOffset, hOffset, vOffset) = cameraMovement(rotateStep, zoomStep, command)
-      val newState = (action(command) match {
-        case Some(action) => state.map {
-          case (s, camera) => (resolveAction(s, action), camera)
-        }
-        case None => state
-      }).map {
-        case (s, Polar(d, h, v)) => (s, Polar(d + dOffset, h + hOffset, v + vOffset))
+  @tailrec
+  def readAndWrite(state: AppState, screen: Future[Unit]): Unit = {
+    val inputStr = Console.in.readLine().toString
+    parseInput(inputStr) match {
+      case None => readAndWrite(state, screen)
+      case Some(Exit) => ()
+      case Some(input) => {
+        val newState = resolveInput(state, input)
+        val newScreen = screen.map(_ => displayAppState(newState))
+        readAndWrite(newState, newScreen)
       }
-      newState.map {
-        case (state, camera) => bufferedPrintLn(tools.reduceState(state)(camera, focus))
-      }
-      readAndWrite(newState)
     }
   }
 
-  readAndWrite(newGame)
+  readAndWrite(newGame, screen)
 }
