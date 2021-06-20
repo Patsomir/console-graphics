@@ -22,7 +22,7 @@ object Start extends App {
   val out = new BufferedWriter(
     new OutputStreamWriter(new FileOutputStream(java.io.FileDescriptor.out), "ASCII"),
     width * height
-  );
+  )
 
   val axis = List(
     (Point(0, 0, 0), Point(1, 0, 0), Color(true, false, false, 1)),
