@@ -4,15 +4,10 @@ import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
 import utils.AlmostEq.ops._
 import utils.Precision
-import utils.AlmostEq
 import math.MetricVectorSpace.ops._
 
 class Vector3Test extends AnyFlatSpec with Matchers {
   implicit val precision: Precision = Precision(0.0001)
-  implicit val almostEq: AlmostEq[Vector3] = new AlmostEq[Vector3] {
-    override def almostEqual(a: Vector3, b: Vector3)(implicit precision: Precision): Boolean
-      = a.x =~ b.x && a.y =~ b.y && a.z =~ b.z
-  }
 
   "+" should "add two vectors componentwise" in {
     Vector3(1, 2, 3) + Vector3(3, 2, 1) =~ Vector3(4, 4, 4) shouldBe true
@@ -56,10 +51,6 @@ class Vector3Test extends AnyFlatSpec with Matchers {
 
 class Vector4Test extends AnyFlatSpec with Matchers {
   implicit val precision: Precision = Precision(0.0001)
-  implicit val almostEq: AlmostEq[Vector4] = new AlmostEq[Vector4] {
-    override def almostEqual(a: Vector4, b: Vector4)(implicit precision: Precision): Boolean
-      = a.x =~ b.x && a.y =~ b.y && a.z =~ b.z && a.t =~ b.t
-  }
 
   "+" should "add two vectors componentwise" in {
     Vector4(1, 2, 3, 4) + Vector4(3, 2, 1, 0) =~ Vector4(4, 4, 4, 4) shouldBe true

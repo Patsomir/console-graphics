@@ -10,7 +10,7 @@ case class Matrix4x4(col1: Vector4, col2: Vector4, col3: Vector4, col4: Vector4)
           Vector4(x3, y3, z3, t3),
           Vector4(x4, y4, z4, t4)
         ) =>
-      Matrix4x4(Vector4(x1, x2, x3, x4), Vector4(y1, y2, y3, y4), Vector4(z1, z2, z3, z3), Vector4(t1, t2, t3, t3))
+      Matrix4x4(Vector4(x1, x2, x3, x4), Vector4(y1, y2, y3, y4), Vector4(z1, z2, z3, z4), Vector4(t1, t2, t3, t4))
   }
 
   def *(vector: Vector4): Vector4 = col1 * vector.x + col2 * vector.y + col3 * vector.z + col4 * vector.t
