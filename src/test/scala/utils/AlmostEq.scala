@@ -4,7 +4,9 @@ import math.Vector3
 import math.Vector4
 import math.Matrix4x4
 
-case class Precision(value: Double)
+case class Precision(value: Double) {
+  require(value > 0)
+}
 
 trait AlmostEq[A] {
   def almostEqual(a: A, b: A)(implicit precision: Precision): Boolean
