@@ -51,7 +51,7 @@ object Start extends App {
       val up = Vector3(0, 1, 0)
 
       val projector = PerspectiveProjector(eye, focus, up, eye to focus, 0.5f * width.toFloat / height)
-      val transformer = MatrixTransformer(Vector3(1, 0.5f, 0), 0.5f, 0.5f, 1.5f, 45, 45, 30)
+      val transformer = MatrixTransformer(Vector3(1, 0.5f, 0), 0.5f, 0.5f, 1.5f, 45, -45, 30)
       val primitives = axis.map { case (a, b, color) => projector(a, b, color) } ++ projector(
         transformer(Cube(1f)),
         Color(true, true, true, 1)

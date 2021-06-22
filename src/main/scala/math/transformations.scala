@@ -68,9 +68,9 @@ object Transformations {
     val sinAngle = sin(rads).toFloat
     val cosAngle = cos(rads).toFloat
     Matrix4x4.fromCols(
-      Vector4(cosAngle, 0, sinAngle, 0),
+      Vector4(cosAngle, 0, -sinAngle, 0),
       Vector4(0, 1, 0, 0),
-      Vector4(-sinAngle, 0, cosAngle, 0),
+      Vector4(sinAngle, 0, cosAngle, 0),
       Vector4(0, 0, 0, 1)
     )
   }

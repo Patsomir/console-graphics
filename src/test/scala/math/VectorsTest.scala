@@ -47,6 +47,15 @@ class Vector3Test extends AnyFlatSpec with Matchers {
     val b = a * 2
     (a vectorProduct b) =~ Vector3(0, 0, 0) shouldBe true
   }
+
+  it should "return a unit vector when applied on perpendicular unit vectors" in {
+    val a = Vector3(1, 0, 0)
+    val b = Vector3(0, 1, 0)
+    val c = Vector3(0, 0, 1)
+    (a vectorProduct b).length =~ 1 shouldBe true
+    (b vectorProduct c).length =~ 1 shouldBe true
+    (c vectorProduct a).length =~ 1 shouldBe true
+  }
 }
 
 class Vector4Test extends AnyFlatSpec with Matchers {
