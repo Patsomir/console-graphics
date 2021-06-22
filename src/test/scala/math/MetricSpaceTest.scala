@@ -10,13 +10,13 @@ class MetricSpaceTest extends AnyFlatSpec with Matchers {
   implicit val precision: Precision = Precision(0.0001)
   implicit val ms = MetricVectorSpace[Vector3]
 
-  "distance" should "be positive when applied on different vectors" in {
+  "distance" should "be positive when applied on different elements" in {
     (Vector3(1, 2, 3) distanceTo Vector3(1, 2, 5)) > 0 shouldBe true
     (Vector3(1, 2, 3) distanceTo Vector3(-1, 0, 2)) > 0 shouldBe true
     (Vector3(-1, 0, 2) distanceTo Vector3(0, 0, 0)) > 0 shouldBe true
   }
 
-  it should "be zero on equal vectors" in {
+  it should "be zero on equal elements" in {
     (Vector3(1, 2, 3) distanceTo Vector3(1, 2, 3)) =~ 0 shouldBe true
     (Vector3(0, 0, 0) distanceTo Vector3(0, 0, 0)) =~ 0 shouldBe true
   }
