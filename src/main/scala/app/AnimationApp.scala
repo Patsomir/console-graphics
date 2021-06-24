@@ -56,8 +56,7 @@ object AnimationApp extends IOApp.Simple {
       transformer(cube),
       Color(true, true, true, 1)
     )
-    val s = canvas(primitives)
-    AnsiConsumer(s).toString
+    AnsiConsumer(canvas(primitives)).toString
   }
 
   def display(time: Float): IO[Unit] = for {
