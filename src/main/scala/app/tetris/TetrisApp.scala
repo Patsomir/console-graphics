@@ -1,16 +1,9 @@
 package app.tetris
 
-import graphics.Canvas
-import java.io.BufferedWriter
-import java.io.OutputStreamWriter
-import java.io.FileOutputStream
 import math.Vector3
-import scala.concurrent.ExecutionContext
-import java.util.concurrent.ForkJoinPool
-import scala.concurrent.Future
-import scala.annotation.tailrec
 import scala.util.Random
-
+import cats.effect.IO
+import cats.effect.IOApp
 
 object TetrisAppUtils {
   sealed trait Input
@@ -24,17 +17,6 @@ object TetrisAppUtils {
       val (tetromino, newSeed) = newTetromino(seed)
       AppState(GameState.newGameState(tetrisCols, tetrisRows, tetromino), Polar(10.5f, 0, 0), newSeed)
     }
-  }
-
-  implicit val ec: ExecutionContext = ExecutionContext.fromExecutor(new ForkJoinPool)
-  val out = new BufferedWriter(
-    new OutputStreamWriter(new FileOutputStream(java.io.FileDescriptor.out), "ASCII"),
-    2048
-  )
-
-  def bufferedPrintLn(s: String): Unit = {
-    out.write(s + "\n")
-    out.flush()
   }
 
   val rotateStep = 10.0f
@@ -70,14 +52,9 @@ object TetrisAppUtils {
     }
     case _ => state
   }
-
-  def displayAppState(state: AppState)(implicit tools: TetrisDrawingTools): Unit = {
-    out.write(tools.reduceState(state.game)(state.camera, Vector3.zero) + "\n")
-    out.flush()
-  }
 }
 
-object TetrisApp extends App {
+object TetrisApp extends IOApp.Simple {
   import TetrisAppUtils._
 
   val width = 160
@@ -86,22 +63,24 @@ object TetrisApp extends App {
 
   val tetrisRows = 5
   val tetrisCols = 10
-  val newGame = AppState.initial(tetrisRows, tetrisCols, System.nanoTime.toInt)
-  val screen = Future(displayAppState(newGame))
 
-  @tailrec
-  def readAndWrite(state: AppState, screen: Future[Unit]): Unit = {
-    val inputStr = Console.in.readLine().toString
-    parseInput(inputStr) match {
-      case None => readAndWrite(state, screen)
-      case Some(Exit) => ()
+  def displayAppState(state: AppState)(implicit tools: TetrisDrawingTools): IO[Unit] =
+    IO.println(tools.reduceState(state.game)(state.camera, Vector3.zero) + "\n")
+
+  def readAndWrite(state: AppState): IO[Unit] = for {
+    inputstr <- IO.readLine
+    _ <- parseInput(inputstr) match {
+      case None => readAndWrite(state)
+      case Some(Exit) => IO.unit
       case Some(input) => {
         val newState = resolveInput(state, input)
-        val newScreen = screen.map(_ => displayAppState(newState))
-        readAndWrite(newState, newScreen)
+        displayAppState(newState) &> readAndWrite(newState)
       }
     }
-  }
+  } yield ()
 
-  readAndWrite(newGame, screen)
+  def run: IO[Unit] = {
+    val newGame = AppState.initial(tetrisRows, tetrisCols, System.nanoTime.toInt)
+    displayAppState(newGame) *> readAndWrite(newGame)
+  }
 }
