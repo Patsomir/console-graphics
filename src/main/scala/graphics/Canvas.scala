@@ -1,5 +1,8 @@
 package graphics
 
+// Този клас вътрешно използва mutability с цел performance.
+// Това не се вижда от външния свят. Интерфейсът на класа остава функционален и
+// може безопасно да се използва във функционален код.
 class Canvas private (width: Int, height: Int) extends Rasterizer {
 
   type PixelGrid = Array[Array[RasterFragment]]
