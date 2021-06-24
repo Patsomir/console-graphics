@@ -55,12 +55,13 @@ class Canvas private (width: Int, height: Int) extends Rasterizer {
     grid
   }
 
+  private def newGrid: PixelGrid = 
+    (for {
+      _ <- Range(0, height)
+    } yield Array.fill[RasterFragment](width)(RasterFragment(Color(false, false, false, 0), 2))).toArray
+
   override def rasterize(primitives: Iterable[Primitive]): Raster = new CanvasRaster(
-    primitives.foldLeft(
-      (for {
-        _ <- Range(0, height)
-      } yield Array.fill[RasterFragment](width)(RasterFragment(Color(false, false, false, 0), 2))).toArray
-    ) {
+    primitives.foldLeft(newGrid) {
       case (grid, vertex: Vertex) => drawVertex(grid, vertex)
       case (grid, line: Line) => drawLine(grid, line)
       case (grid, triangle: Triangle) => drawTriangle(grid, triangle)
